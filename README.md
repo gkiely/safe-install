@@ -25,13 +25,6 @@ behind a reviewed allowlist in `package.json`.
 ignore-scripts=true
 ```
 
-Optionally block subdependencies that use `git:`, `file:`, `link:`, or remote
-tarball URL specifiers:
-
-```txt
-block-exotic-subdeps=true
-```
-
 2. Install `safe-install` without running dependency scripts:
 
 ```sh
@@ -54,10 +47,14 @@ npm i --ignore-scripts -D safe-install
 npm run safe-install -- find
 ```
 
-5. Review the output, then add trusted packages to `package.json`:
+5. Review the output, then add trusted packages to `package.json`. You can also
+enable `blockExoticSubDeps` to fail installs when transitive dependencies point
+outside the npm registry with `git:`, `file:`, `link:`, or remote tarball URL
+specifiers.
 
 ```json
 {
+  "blockExoticSubDeps": true,
   "trustedDependencies": [
     "esbuild",
     "sharp"
@@ -76,7 +73,7 @@ npm run safe-install
 `safe-install` runs npm install with scripts blocked, then runs install scripts only for packages listed in
 `trustedDependencies`.
 
-If `block-exotic-subdeps=true` is set in `.npmrc`, `safe-install` also
+If `blockExoticSubDeps` is set to `true` in `package.json`, `safe-install` also
 fails the install before rebuilding trusted dependencies when a transitive
 dependency points outside the npm registry with a `git:`, `file:`, `link:`, or
 remote tarball URL specifier.

@@ -27,6 +27,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "blockExoticSubDeps": true,
   "bin": {
     "safe-install": "./dist/index.js"
   },

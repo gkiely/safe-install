@@ -3,7 +3,7 @@ import { test } from "node:test";
 import {
   assertNoBlockedExoticSubdeps,
   findInstallScriptDependencies,
-  parseNpmrc,
+  getSafeInstallConfig,
 } from "../src/index.ts";
 
 test("findInstallScriptDependencies returns untrusted lockfile packages with install scripts", () => {
@@ -55,8 +55,11 @@ test("assertNoBlockedExoticSubdeps only fails when block-exotic-subdeps is enabl
   });
 });
 
-test("parseNpmrc reads block-exotic-subdeps", () => {
-  assert.deepEqual(parseNpmrc("ignore-scripts=true\nblock-exotic-subdeps=true\n"), {
+test("getSafeInstallConfig reads blockExoticSubDeps", () => {
+  assert.deepEqual(getSafeInstallConfig({ blockExoticSubDeps: true }), {
     blockExoticSubdeps: true,
+  });
+  assert.deepEqual(getSafeInstallConfig({}), {
+    blockExoticSubdeps: false,
   });
 });

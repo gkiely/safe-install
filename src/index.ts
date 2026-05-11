@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 type PackageJson = {
+  blockExoticSubDeps?: unknown;
   trustedDependencies?: unknown;
 };
 
@@ -95,34 +96,20 @@ type ExoticSubdependency = {
   specifier: string;
 };
 
-type NpmrcConfig = {
+type SafeInstallConfig = {
   blockExoticSubdeps: boolean;
 };
 
-export function parseNpmrc(content: string): NpmrcConfig {
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (line.length === 0 || line.startsWith("#") || line.startsWith(";")) {
-      continue;
-    }
-
-    const separator = line.indexOf("=");
-    if (separator === -1) {
-      continue;
-    }
-
-    const key = line.slice(0, separator).trim();
-    const value = line.slice(separator + 1).trim();
-    if (key === "block-exotic-subdeps") {
-      if (value !== "true" && value !== "false") {
-        throw new Error(".npmrc block-exotic-subdeps must be true or false.");
-      }
-
-      return { blockExoticSubdeps: value === "true" };
-    }
+export function getSafeInstallConfig(pkg: PackageJson): SafeInstallConfig {
+  if (pkg.blockExoticSubDeps === undefined) {
+    return { blockExoticSubdeps: false };
   }
 
-  return { blockExoticSubdeps: false };
+  if (typeof pkg.blockExoticSubDeps !== "boolean") {
+    throw new Error("package.json blockExoticSubDeps must be a boolean.");
+  }
+
+  return { blockExoticSubdeps: pkg.blockExoticSubDeps };
 }
 
 function findExoticSubdependencies(packageLock: PackageLock): ExoticSubdependency[] {
@@ -147,7 +134,7 @@ function findExoticSubdependencies(packageLock: PackageLock): ExoticSubdependenc
   });
 }
 
-export function assertNoBlockedExoticSubdeps(config: NpmrcConfig, packageLock: PackageLock): void {
+export function assertNoBlockedExoticSubdeps(config: SafeInstallConfig, packageLock: PackageLock): void {
   if (!config.blockExoticSubdeps) return;
 
   const exoticSubdeps = findExoticSubdependencies(packageLock);
@@ -174,10 +161,6 @@ function readPackageLock(): PackageLock {
 
 function readPackageJson(): PackageJson {
   return existsSync("package.json") ? readJsonFile<PackageJson>("package.json") : {};
-}
-
-function readNpmrc(): NpmrcConfig {
-  return existsSync(".npmrc") ? parseNpmrc(readFileSync(".npmrc", "utf8")) : parseNpmrc("");
 }
 
 function run(command: string, args: string[]): void {
@@ -225,12 +208,13 @@ export function findCommand(): void {
 
 export function installCommand(): void {
   const pkg = readPackageJson();
+  const config = getSafeInstallConfig(pkg);
   const trustedDependencies = getTrustedDependencies(pkg);
 
   run("npm", ["install", "--ignore-scripts"]);
 
   if (existsSync("package-lock.json")) {
-    assertNoBlockedExoticSubdeps(readNpmrc(), readPackageLock());
+    assertNoBlockedExoticSubdeps(config, readPackageLock());
   }
 
   if (trustedDependencies.length > 0) {
