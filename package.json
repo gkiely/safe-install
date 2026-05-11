@@ -13,7 +13,7 @@
     "trusted-dependencies"
   ],
   "engines": {
-    "node": ">=24"
+    "node": ">=16"
   },
   "packageManager": "npm@11.9.0",
   "repository": {
@@ -29,7 +29,7 @@
   },
   "blockExoticSubDeps": true,
   "bin": {
-    "safe-install": "./dist/index.js"
+    "safe-install": "dist/index.js"
   },
   "exports": {
     ".": {
