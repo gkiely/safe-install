@@ -44,7 +44,7 @@ npm i --ignore-scripts -D safe-install
 4. Find dependencies that declare install-time scripts:
 
 ```sh
-npm run safe-install -- find
+npm run safe-install -- review-deps
 ```
 
 5. Review the output, then add trusted packages to `package.json`. You can also

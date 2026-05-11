@@ -183,11 +183,12 @@ function printHelp(): void {
 
 Usage:
   safe-install          Run npm install with scripts disabled, then rebuild trusted dependencies
-  safe-install find     List dependencies that declare install-time scripts
+  safe-install review-deps
+                        List dependencies that declare install-time scripts
 `);
 }
 
-export function findCommand(): void {
+export function reviewDepsCommand(): void {
   const dependencies = findInstallScriptDependencies(
     readPackageLock(),
     getTrustedDependencies(readPackageJson()),
@@ -230,8 +231,8 @@ export function main(args = process.argv.slice(2)): void {
     return;
   }
 
-  if (command === "find") {
-    findCommand();
+  if (command === "review-deps") {
+    reviewDepsCommand();
     return;
   }
 

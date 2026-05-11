@@ -1,6 +1,6 @@
 {
   "name": "@gkiely/safe-install",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Run npm installs with lifecycle scripts disabled, then rebuild explicitly trusted dependencies.",
   "author": "Grant Kiely <grant@youneedawiki.com>",
   "license": "MIT",
@@ -45,6 +45,7 @@
     "build": "tsc -p tsconfig.build.json",
     "prepack": "npm run build",
     "prepublishOnly": "npm run typecheck && npm test",
+    "safe-install": "node dist/index.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
   },
