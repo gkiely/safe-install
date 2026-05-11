@@ -1,0 +1,54 @@
+{
+  "name": "@gkiely/safe-install",
+  "version": "0.1.0",
+  "description": "Run npm installs with lifecycle scripts disabled, then rebuild explicitly trusted dependencies.",
+  "author": "Grant Kiely <grant@youneedawiki.com>",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "npm",
+    "install",
+    "security",
+    "supply-chain",
+    "trusted-dependencies"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "npm@11.9.0",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gkiely/safe-install.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gkiely/safe-install/issues"
+  },
+  "homepage": "https://github.com/gkiely/safe-install#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "safe-install": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm test",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "typescript": "latest"
+  }
+}
