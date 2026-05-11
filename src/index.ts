@@ -69,7 +69,7 @@ export function findInstallScriptDependencies(
   const found = new Set<string>();
 
   for (const [path, pkg] of Object.entries(packageLock.packages ?? {})) {
-    if (pkg.link) {
+    if (path === "" || pkg.link) {
       continue;
     }
 

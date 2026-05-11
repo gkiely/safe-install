@@ -11,7 +11,7 @@ test("findInstallScriptDependencies returns untrusted lockfile packages with ins
     findInstallScriptDependencies(
       {
         packages: {
-          "": {},
+          "": { name: "my-app", hasInstallScript: true },
           "node_modules/esbuild": { hasInstallScript: true },
           "node_modules/sharp": { scripts: { install: "node install/check" } },
           "node_modules/react": {},
