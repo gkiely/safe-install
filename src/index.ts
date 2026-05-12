@@ -23,6 +23,7 @@ type PackageLock = {
 
 type ParsedCommand =
   | { kind: "install"; args: string[] }
+  | { kind: "update"; args: string[] }
   | { kind: "review-deps" }
   | { kind: "help" };
 
@@ -187,6 +188,10 @@ export function getInstallArgs(args: readonly string[] = []): string[] {
   return ["install", "--ignore-scripts", ...args];
 }
 
+export function getUpdateArgs(args: readonly string[] = []): string[] {
+  return ["update", "--ignore-scripts", ...args];
+}
+
 export function parseCommand(args: readonly string[]): ParsedCommand {
   if (args.includes("--help") || args.includes("-h")) {
     return { kind: "help" };
@@ -194,6 +199,10 @@ export function parseCommand(args: readonly string[]): ParsedCommand {
 
   if (args[0] === "--" && args[1] === "review-deps") {
     return { kind: "review-deps" };
+  }
+
+  if (args[0] === "--" && args[1] === "update") {
+    return { kind: "update", args: args.slice(2) };
   }
 
   return { kind: "install", args: args.filter((arg) => arg !== "--") };
@@ -207,6 +216,8 @@ Usage:
                         Run npm install with scripts disabled, then rebuild trusted dependencies
   safe-install -- review-deps
                         List dependencies that declare install-time scripts
+  safe-install -- update [npm update args]
+                        Run npm update with scripts disabled, then rebuild trusted dependencies
 `);
 }
 
@@ -230,11 +241,19 @@ export function reviewDepsCommand(): void {
 }
 
 export function installCommand(args: readonly string[] = []): void {
+  runPackageManagerThenRebuild(getInstallArgs(args));
+}
+
+export function updateCommand(args: readonly string[] = []): void {
+  runPackageManagerThenRebuild(getUpdateArgs(args));
+}
+
+function runPackageManagerThenRebuild(npmArgs: readonly string[]): void {
   const pkg = readPackageJson();
   const config = getSafeInstallConfig(pkg);
   const trustedDependencies = getTrustedDependencies(pkg);
 
-  run("npm", getInstallArgs(args));
+  run("npm", [...npmArgs]);
 
   if (existsSync("package-lock.json")) {
     assertNoBlockedExoticSubdeps(config, readPackageLock());
@@ -255,6 +274,11 @@ export function main(args = process.argv.slice(2)): void {
 
   if (command.kind === "review-deps") {
     reviewDepsCommand();
+    return;
+  }
+
+  if (command.kind === "update") {
+    updateCommand(command.args);
     return;
   }
 

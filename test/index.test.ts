@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import {
   assertNoBlockedExoticSubdeps,
   findInstallScriptDependencies,
   getInstallArgs,
   getSafeInstallConfig,
+  getUpdateArgs,
   parseCommand,
 } from "../src/index.ts";
 
@@ -76,6 +81,15 @@ test("getInstallArgs passes npm install args through", () => {
   ]);
 });
 
+test("getUpdateArgs adds ignore-scripts and passes npm update args through", () => {
+  assert.deepEqual(getUpdateArgs(["--no-audit", "--no-fund"]), [
+    "update",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+  ]);
+});
+
 test("parseCommand treats positional package names as npm install args", () => {
   assert.deepEqual(parseCommand(["--no-audit", "--no-fund", "left-pad"]), {
     kind: "install",
@@ -91,9 +105,46 @@ test("parseCommand only runs review-deps after a leading separator", () => {
   });
 });
 
+test("parseCommand supports update after a leading separator", () => {
+  assert.deepEqual(parseCommand(["--", "update", "--no-audit", "--no-fund"]), {
+    kind: "update",
+    args: ["--no-audit", "--no-fund"],
+  });
+});
+
+test("parseCommand supports install-latest package args", () => {
+  assert.deepEqual(parseCommand(["--no-audit", "--no-fund", "react@latest", "vite@latest"]), {
+    kind: "install",
+    args: ["--no-audit", "--no-fund", "react@latest", "vite@latest"],
+  });
+});
+
 test("parseCommand supports npm-run appended args with default flags", () => {
   assert.deepEqual(parseCommand(["--no-audit", "--no-fund", "--", "review-deps"]), {
     kind: "install",
     args: ["--no-audit", "--no-fund", "review-deps"],
   });
+});
+
+test("cli passes package names through to npm install", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "safe-install-"));
+  writeFileSync(join(cwd, "package.json"), JSON.stringify({ name: "fixture", version: "1.0.0" }));
+
+  execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--package-lock-only", "is-number@7.0.0"], {
+    cwd,
+    stdio: "pipe",
+  });
+
+  const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as {
+    dependencies?: Record<string, string>;
+  };
+  assert.equal(pkg.dependencies?.["is-number"], "^7.0.0");
+});
+
+test("cli runs review-deps only after separator", () => {
+  const output = execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--", "review-deps"], {
+    encoding: "utf8",
+  });
+
+  assert.match(output, /No untrusted dependencies with install-time scripts found/);
 });

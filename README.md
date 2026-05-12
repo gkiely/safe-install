@@ -68,6 +68,12 @@ You can pass npm install args through:
 npm run safe-install left-pad@latest
 ```
 
+You can run npm update through the same command:
+
+```sh
+npm run safe-install -- update
+```
+
 ## What `safe-install` does
 
 `safe-install` runs npm install with scripts blocked, then runs install scripts only for packages listed in
