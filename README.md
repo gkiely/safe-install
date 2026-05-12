@@ -25,16 +25,12 @@ behind a reviewed allowlist in `package.json`.
 ignore-scripts=true
 ```
 
-Optionally enable:
+Optionally enable (requires 11.14.0+):
 
 ```txt
-allow-git=root # npm 11.10.0+
-allow-remote=root # npm 11.14.0+ 
+allow-git=root
+allow-remote=root
 ```
-
-`allow-git=root` and `allow-remote=root` let your project use direct Git or
-remote tarball dependencies when you intentionally declare them, while blocking
-transitive packages from pulling in those sources.
 
 2. Add script to `package.json`:
 
