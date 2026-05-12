@@ -30,7 +30,7 @@ ignore-scripts=true
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install"
+    "safe-install": "npx -y @gkiely/safe-install -- --no-audit --no-fund"
   }
 }
 ```
@@ -59,7 +59,7 @@ specifiers.
 6. Use `safe-install` for future installs:
 
 ```sh
-npm run safe-install -- --no-audit --no-fund
+npm run safe-install
 ```
 
 ## What `safe-install` does

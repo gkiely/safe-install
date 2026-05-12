@@ -229,25 +229,19 @@ export function installCommand(args: readonly string[] = []): void {
 }
 
 export function main(args = process.argv.slice(2)): void {
-  const [command] = args;
+  if (args.includes("--help") || args.includes("-h")) {
+    printHelp();
+    return;
+  }
 
+  const command = args.find((arg) => arg !== "--" && !arg.startsWith("-"));
   if (command === undefined) {
-    installCommand();
+    installCommand(args.filter((arg) => arg !== "--"));
     return;
   }
 
   if (command === "review-deps") {
     reviewDepsCommand();
-    return;
-  }
-
-  if (command === "--help" || command === "-h") {
-    printHelp();
-    return;
-  }
-
-  if (command.startsWith("-")) {
-    installCommand(args);
     return;
   }
 
