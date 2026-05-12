@@ -1,6 +1,6 @@
 {
   "name": "@gkiely/safe-install",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Run npm installs with lifecycle scripts disabled, then rebuild explicitly trusted dependencies.",
   "author": "Grant Kiely <grant@youneedawiki.com>",
   "license": "MIT",
