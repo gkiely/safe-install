@@ -45,6 +45,7 @@
     "build": "tsc -p tsconfig.build.json",
     "prepack": "npm run build",
     "prepublishOnly": "npm run typecheck && npm test",
+    "release": "npm run typecheck && npm test && npm version patch && npm publish --access public && git push --follow-tags",
     "safe-install": "node dist/index.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
