@@ -25,7 +25,7 @@ behind a reviewed allowlist in `package.json`.
 ignore-scripts=true
 ```
 
-Optionally enable (requires 11.14.0+):
+Optionally enable (requires npm 11.14.0+):
 
 ```txt
 allow-git=root
@@ -37,7 +37,7 @@ allow-remote=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install0.1.14"
+    "safe-install": "npx -y @gkiely/safe-install0.1.15"
   }
 }
 ```
