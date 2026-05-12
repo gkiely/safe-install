@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 type PackageJson = {
   blockExoticSubDeps?: unknown;
+  scripts?: Record<string, unknown>;
   trustedDependencies?: unknown;
 };
 
@@ -184,6 +185,10 @@ function run(command: string, args: string[]): void {
   }
 }
 
+function getRootInstallScripts(pkg: PackageJson): string[] {
+  return installScriptNames.filter((scriptName) => typeof pkg.scripts?.[scriptName] === "string");
+}
+
 export function getInstallArgs(args: readonly string[] = []): string[] {
   return ["install", "--ignore-scripts", ...args];
 }
@@ -222,11 +227,11 @@ function printHelp(): void {
 
 Usage:
   safe-install [npm install args]
-                        Run npm install with scripts disabled, then rebuild trusted dependencies
+                        Run npm install with dependency scripts disabled, then rebuild trusted dependencies
   safe-install -- review-deps
                         List dependencies that declare install-time scripts
   safe-install -- update [npm update args]
-                        Run npm update with scripts disabled, then rebuild trusted dependencies
+                        Run npm update with dependency scripts disabled, then rebuild trusted dependencies
 `);
 }
 
@@ -270,6 +275,10 @@ function runPackageManagerThenRebuild(npmArgs: readonly string[]): void {
 
   if (trustedDependencies.length > 0) {
     run("npm", ["rebuild", "--ignore-scripts=false", ...trustedDependencies]);
+  }
+
+  for (const scriptName of getRootInstallScripts(pkg)) {
+    run("npm", ["run", "--ignore-scripts", scriptName]);
   }
 }
 

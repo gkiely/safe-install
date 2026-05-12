@@ -1,7 +1,7 @@
 {
   "name": "@gkiely/safe-install",
   "version": "0.1.15",
-  "description": "Run npm installs with lifecycle scripts disabled, then rebuild explicitly trusted dependencies.",
+  "description": "Run npm installs with dependency lifecycle scripts disabled, then rebuild explicitly trusted dependencies.",
   "author": "Grant Kiely <grant@youneedawiki.com>",
   "license": "MIT",
   "type": "module",
@@ -45,7 +45,7 @@
     "build": "tsc -p tsconfig.build.json",
     "prepack": "npm run build",
     "prepublishOnly": "npm run typecheck && npm test",
-    "bump-readme": "node scripts/bump-readme-version.ts",
+    "bump": "node scripts/bump-readme-version.ts",
     "release": "npm run typecheck && npm test && npm version patch && npm publish --access public && git push --follow-tags",
     "safe-install": "node dist/index.js",
     "test": "npm run build && node --test",

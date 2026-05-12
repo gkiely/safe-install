@@ -142,6 +142,34 @@ test("cli passes package names through to npm install", () => {
   assert.equal(pkg.dependencies?.["is-number"], "^7.0.0");
 });
 
+test("cli runs root install lifecycle scripts when package.json defines them", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "safe-install-"));
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify({
+      name: "fixture",
+      version: "1.0.0",
+      scripts: {
+        prepreinstall: "node -e \"require('fs').appendFileSync('install-scripts-ran', 'prepreinstall\\n')\"",
+        preinstall: "node -e \"require('fs').appendFileSync('install-scripts-ran', 'preinstall\\n')\"",
+        postpreinstall: "node -e \"require('fs').appendFileSync('install-scripts-ran', 'postpreinstall\\n')\"",
+        install: "node -e \"require('fs').appendFileSync('install-scripts-ran', 'install\\n')\"",
+        postinstall: "node -e \"require('fs').appendFileSync('install-scripts-ran', 'postinstall\\n')\"",
+      },
+    }),
+  );
+
+  execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--package-lock-only"], {
+    cwd,
+    stdio: "pipe",
+  });
+
+  assert.equal(
+    readFileSync(join(cwd, "install-scripts-ran"), "utf8"),
+    "preinstall\ninstall\npostinstall\n",
+  );
+});
+
 test("cli runs review-deps after separator", () => {
   const output = execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--", "review-deps"], {
     encoding: "utf8",

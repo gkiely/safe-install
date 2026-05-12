@@ -37,12 +37,12 @@ allow-remote=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install0.1.15"
+    "safe-install": "npx -y @gkiely/safe-install0.1.16"
   }
 }
 ```
 
-4. Find dependencies that declare install-time scripts:
+3. Find dependencies that declare install-time scripts:
 
 ```sh
 npm run safe-install -- review-deps
@@ -69,6 +69,18 @@ or remote tarball URL specifiers.
 npm run safe-install
 ```
 
+7. If your project defines its own install lifecycle scripts, `safe-install`
+runs them after dependency installation:
+
+```json
+{
+  "scripts": {
+    "preinstall": "node scripts/preinstall.js",
+    "postinstall": "node scripts/setup.js"
+  }
+}
+```
+
 You can pass npm install args through:
 
 ```sh
@@ -86,6 +98,9 @@ npm run safe-install -- update
 `safe-install` runs npm install with scripts blocked, then runs install scripts only for packages listed in
 `trustedDependencies`.
 
+It also runs your project's own `preinstall`, `install`, and `postinstall`
+scripts when they are defined in the root `package.json`.
+
 If `blockExoticSubDeps` is set to `true` in `package.json`, `safe-install` also
 fails the install before rebuilding trusted dependencies when a transitive
 dependency points outside the npm registry with a `git:`, `file:`, `link:`, or
@@ -96,6 +111,9 @@ Equivalent manual flow:
 ```sh
 npm install --ignore-scripts --no-audit --no-fund
 npm rebuild --ignore-scripts=false esbuild sharp
+npm run --ignore-scripts preinstall
+npm run --ignore-scripts install
+npm run --ignore-scripts postinstall
 ```
 
 ## Notes
