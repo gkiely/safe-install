@@ -23,8 +23,13 @@ behind a reviewed allowlist in `package.json`.
 
 ```txt
 ignore-scripts=true
-allow-git=root
-allow-remote=root
+```
+
+Optionally enable:
+
+```txt
+allow-git=root # npm 11.10.0+
+allow-remote=root # npm 11.14.0+ 
 ```
 
 `allow-git=root` and `allow-remote=root` let your project use direct Git or
