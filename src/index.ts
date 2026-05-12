@@ -178,11 +178,16 @@ function run(command: string, args: string[]): void {
   }
 }
 
+export function getInstallArgs(args: readonly string[] = []): string[] {
+  return ["install", "--ignore-scripts", ...args];
+}
+
 function printHelp(): void {
   console.log(`safe-install
 
 Usage:
-  safe-install          Run npm install with scripts disabled, then rebuild trusted dependencies
+  safe-install [npm install flags]
+                        Run npm install with scripts disabled, then rebuild trusted dependencies
   safe-install review-deps
                         List dependencies that declare install-time scripts
 `);
@@ -207,12 +212,12 @@ export function reviewDepsCommand(): void {
   console.log("Review these packages before adding them to trustedDependencies.");
 }
 
-export function installCommand(): void {
+export function installCommand(args: readonly string[] = []): void {
   const pkg = readPackageJson();
   const config = getSafeInstallConfig(pkg);
   const trustedDependencies = getTrustedDependencies(pkg);
 
-  run("npm", ["install", "--ignore-scripts"]);
+  run("npm", getInstallArgs(args));
 
   if (existsSync("package-lock.json")) {
     assertNoBlockedExoticSubdeps(config, readPackageLock());
@@ -238,6 +243,11 @@ export function main(args = process.argv.slice(2)): void {
 
   if (command === "--help" || command === "-h") {
     printHelp();
+    return;
+  }
+
+  if (command.startsWith("-")) {
+    installCommand(args);
     return;
   }
 

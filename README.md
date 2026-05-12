@@ -25,18 +25,12 @@ behind a reviewed allowlist in `package.json`.
 ignore-scripts=true
 ```
 
-2. Install `safe-install` without running dependency scripts:
-
-```sh
-npm i --ignore-scripts -D safe-install
-```
-
-3. Add scripts to `package.json`:
+2. Add script to `package.json`:
 
 ```json
 {
   "scripts": {
-    "safe-install": "safe-install"
+    "safe-install": "npx -y @gkiely/safe-install"
   }
 }
 ```
@@ -65,7 +59,7 @@ specifiers.
 6. Use `safe-install` for future installs:
 
 ```sh
-npm run safe-install
+npm run safe-install -- --no-audit --no-fund
 ```
 
 ## What `safe-install` does
@@ -81,7 +75,7 @@ remote tarball URL specifier.
 Equivalent manual flow:
 
 ```sh
-npm install --ignore-scripts
+npm install --ignore-scripts --no-audit --no-fund
 npm rebuild --ignore-scripts=false esbuild sharp
 ```
 

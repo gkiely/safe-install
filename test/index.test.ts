@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   assertNoBlockedExoticSubdeps,
   findInstallScriptDependencies,
+  getInstallArgs,
   getSafeInstallConfig,
 } from "../src/index.ts";
 
@@ -62,4 +63,13 @@ test("getSafeInstallConfig reads blockExoticSubDeps", () => {
   assert.deepEqual(getSafeInstallConfig({}), {
     blockExoticSubdeps: false,
   });
+});
+
+test("getInstallArgs passes npm install flags through", () => {
+  assert.deepEqual(getInstallArgs(["--no-audit", "--no-fund"]), [
+    "install",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+  ]);
 });
