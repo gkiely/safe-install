@@ -15,7 +15,6 @@
   "engines": {
     "node": ">=16"
   },
-  "packageManager": "npm@11.9.0",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/gkiely/safe-install.git"
