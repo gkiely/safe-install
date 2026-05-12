@@ -5,6 +5,7 @@ import {
   findInstallScriptDependencies,
   getInstallArgs,
   getSafeInstallConfig,
+  parseCommand,
 } from "../src/index.ts";
 
 test("findInstallScriptDependencies returns untrusted lockfile packages with install scripts", () => {
@@ -65,11 +66,34 @@ test("getSafeInstallConfig reads blockExoticSubDeps", () => {
   });
 });
 
-test("getInstallArgs passes npm install flags through", () => {
-  assert.deepEqual(getInstallArgs(["--no-audit", "--no-fund"]), [
+test("getInstallArgs passes npm install args through", () => {
+  assert.deepEqual(getInstallArgs(["--no-audit", "--no-fund", "left-pad@latest"]), [
     "install",
     "--ignore-scripts",
     "--no-audit",
     "--no-fund",
+    "left-pad@latest",
   ]);
+});
+
+test("parseCommand treats positional package names as npm install args", () => {
+  assert.deepEqual(parseCommand(["--no-audit", "--no-fund", "left-pad"]), {
+    kind: "install",
+    args: ["--no-audit", "--no-fund", "left-pad"],
+  });
+});
+
+test("parseCommand only runs review-deps after a leading separator", () => {
+  assert.deepEqual(parseCommand(["--", "review-deps"]), { kind: "review-deps" });
+  assert.deepEqual(parseCommand(["review-deps"]), {
+    kind: "install",
+    args: ["review-deps"],
+  });
+});
+
+test("parseCommand supports npm-run appended args with default flags", () => {
+  assert.deepEqual(parseCommand(["--no-audit", "--no-fund", "--", "review-deps"]), {
+    kind: "install",
+    args: ["--no-audit", "--no-fund", "review-deps"],
+  });
 });

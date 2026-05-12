@@ -21,6 +21,11 @@ type PackageLock = {
   packages?: Record<string, LockPackage>;
 };
 
+type ParsedCommand =
+  | { kind: "install"; args: string[] }
+  | { kind: "review-deps" }
+  | { kind: "help" };
+
 const installScriptNames = ["preinstall", "install", "postinstall"];
 const exoticSpecifiers = [
   "file:",
@@ -182,13 +187,25 @@ export function getInstallArgs(args: readonly string[] = []): string[] {
   return ["install", "--ignore-scripts", ...args];
 }
 
+export function parseCommand(args: readonly string[]): ParsedCommand {
+  if (args.includes("--help") || args.includes("-h")) {
+    return { kind: "help" };
+  }
+
+  if (args[0] === "--" && args[1] === "review-deps") {
+    return { kind: "review-deps" };
+  }
+
+  return { kind: "install", args: args.filter((arg) => arg !== "--") };
+}
+
 function printHelp(): void {
   console.log(`safe-install
 
 Usage:
-  safe-install [npm install flags]
+  safe-install [npm install args]
                         Run npm install with scripts disabled, then rebuild trusted dependencies
-  safe-install review-deps
+  safe-install -- review-deps
                         List dependencies that declare install-time scripts
 `);
 }
@@ -229,23 +246,19 @@ export function installCommand(args: readonly string[] = []): void {
 }
 
 export function main(args = process.argv.slice(2)): void {
-  if (args.includes("--help") || args.includes("-h")) {
+  const command = parseCommand(args);
+
+  if (command.kind === "help") {
     printHelp();
     return;
   }
 
-  const command = args.find((arg) => arg !== "--" && !arg.startsWith("-"));
-  if (command === undefined) {
-    installCommand(args.filter((arg) => arg !== "--"));
-    return;
-  }
-
-  if (command === "review-deps") {
+  if (command.kind === "review-deps") {
     reviewDepsCommand();
     return;
   }
 
-  throw new Error(`Unknown command: ${command}`);
+  installCommand(command.args);
 }
 
 if (process.argv[1] && realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1])) {

@@ -38,7 +38,7 @@ ignore-scripts=true
 4. Find dependencies that declare install-time scripts:
 
 ```sh
-npm run safe-install review-deps
+npm run safe-install -- review-deps
 ```
 
 5. Review the output, then add trusted packages to `package.json`. You can also
@@ -60,6 +60,12 @@ specifiers.
 
 ```sh
 npm run safe-install
+```
+
+You can pass npm install args through:
+
+```sh
+npm run safe-install left-pad@latest
 ```
 
 ## What `safe-install` does
