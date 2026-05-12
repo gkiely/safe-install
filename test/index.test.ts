@@ -97,12 +97,9 @@ test("parseCommand treats positional package names as npm install args", () => {
   });
 });
 
-test("parseCommand only runs review-deps after a leading separator", () => {
+test("parseCommand runs review-deps with or without a leading separator", () => {
   assert.deepEqual(parseCommand(["--", "review-deps"]), { kind: "review-deps" });
-  assert.deepEqual(parseCommand(["review-deps"]), {
-    kind: "install",
-    args: ["review-deps"],
-  });
+  assert.deepEqual(parseCommand(["review-deps"]), { kind: "review-deps" });
 });
 
 test("parseCommand supports update after a leading separator", () => {
@@ -141,8 +138,30 @@ test("cli passes package names through to npm install", () => {
   assert.equal(pkg.dependencies?.["is-number"], "^7.0.0");
 });
 
-test("cli runs review-deps only after separator", () => {
+test("cli runs review-deps after separator", () => {
   const output = execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--", "review-deps"], {
+    encoding: "utf8",
+  });
+
+  assert.match(output, /No untrusted dependencies with install-time scripts found/);
+});
+
+test("node --run script can forward review-deps through npx-style script", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "safe-install-"));
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify({
+      name: "fixture",
+      version: "1.0.0",
+      scripts: {
+        "safe-install": `node ${JSON.stringify(join(import.meta.dirname, "../dist/index.js"))}`,
+      },
+    }),
+  );
+  writeFileSync(join(cwd, "package-lock.json"), JSON.stringify({ lockfileVersion: 3, packages: {} }));
+
+  const output = execFileSync("node", ["--run", "safe-install", "--", "review-deps"], {
+    cwd,
     encoding: "utf8",
   });
 

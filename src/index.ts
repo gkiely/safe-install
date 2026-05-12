@@ -197,7 +197,10 @@ export function parseCommand(args: readonly string[]): ParsedCommand {
     return { kind: "help" };
   }
 
-  if (args[0] === "--" && args[1] === "review-deps") {
+  if (
+    (args[0] === "--" && args[1] === "review-deps") ||
+    args[0] === "review-deps"
+  ) {
     return { kind: "review-deps" };
   }
 
