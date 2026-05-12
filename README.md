@@ -37,7 +37,7 @@ allow-remote=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install"
+    "safe-install": "npx -y @gkiely/safe-install0.1.14"
   }
 }
 ```
@@ -99,16 +99,6 @@ npm rebuild --ignore-scripts=false esbuild sharp
 ```
 
 ## Notes
-
-Supports npm install flags:
-
-```json
-{
-  "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install --no-audit --no-fund"
-  }
-}
-```
 
 Only add a package to `trustedDependencies` after reviewing why it needs an
 install script. This does not make dependency scripts safe; it makes the trust
