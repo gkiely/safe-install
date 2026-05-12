@@ -30,7 +30,7 @@ ignore-scripts=true
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install -- --no-audit --no-fund"
+    "safe-install": "npx -y @gkiely/safe-install"
   }
 }
 ```
@@ -38,7 +38,7 @@ ignore-scripts=true
 4. Find dependencies that declare install-time scripts:
 
 ```sh
-npm run safe-install -- review-deps
+npm run safe-install review-deps
 ```
 
 5. Review the output, then add trusted packages to `package.json`. You can also
@@ -80,6 +80,16 @@ npm rebuild --ignore-scripts=false esbuild sharp
 ```
 
 ## Notes
+
+Supports npm install flags:
+
+```json
+{
+  "scripts": {
+    "safe-install": "npx -y @gkiely/safe-install --no-audit --no-fund"
+  }
+}
+```
 
 Only add a package to `trustedDependencies` after reviewing why it needs an
 install script. This does not make dependency scripts safe; it makes the trust
