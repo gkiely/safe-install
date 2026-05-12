@@ -23,7 +23,13 @@ behind a reviewed allowlist in `package.json`.
 
 ```txt
 ignore-scripts=true
+allow-git=root
+allow-remote=root
 ```
+
+`allow-git=root` and `allow-remote=root` let your project use direct Git or
+remote tarball dependencies when you intentionally declare them, while blocking
+transitive packages from pulling in those sources.
 
 2. Add script to `package.json`:
 
@@ -42,9 +48,9 @@ npm run safe-install -- review-deps
 ```
 
 5. Review the output, then add trusted packages to `package.json`. You can also
-enable `blockExoticSubDeps` to fail installs when transitive dependencies point
-outside the npm registry with `git:`, `file:`, `link:`, or remote tarball URL
-specifiers.
+enable `blockExoticSubDeps` as a lockfile-level backstop for transitive
+dependencies that point outside the npm registry with `git:`, `file:`, `link:`,
+or remote tarball URL specifiers.
 
 ```json
 {
