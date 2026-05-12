@@ -204,8 +204,14 @@ export function parseCommand(args: readonly string[]): ParsedCommand {
     return { kind: "review-deps" };
   }
 
-  if (args[0] === "--" && args[1] === "update") {
-    return { kind: "update", args: args.slice(2) };
+  if (
+    (args[0] === "--" && args[1] === "update") ||
+    args[0] === "update"
+  ) {
+    return {
+      kind: "update",
+      args: args[0] === "--" ? args.slice(2) : args.slice(1),
+    };
   }
 
   return { kind: "install", args: args.filter((arg) => arg !== "--") };

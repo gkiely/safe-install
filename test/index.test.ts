@@ -102,8 +102,12 @@ test("parseCommand runs review-deps with or without a leading separator", () => 
   assert.deepEqual(parseCommand(["review-deps"]), { kind: "review-deps" });
 });
 
-test("parseCommand supports update after a leading separator", () => {
+test("parseCommand supports update with or without a leading separator", () => {
   assert.deepEqual(parseCommand(["--", "update", "--no-audit", "--no-fund"]), {
+    kind: "update",
+    args: ["--no-audit", "--no-fund"],
+  });
+  assert.deepEqual(parseCommand(["update", "--no-audit", "--no-fund"]), {
     kind: "update",
     args: ["--no-audit", "--no-fund"],
   });
