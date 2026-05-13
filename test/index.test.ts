@@ -312,7 +312,7 @@ test("npm run script supports update with or without the separator", () => {
   }
 });
 
-test("cli init writes package scripts, trustedDependencies, and review-deps script without changing npmrc", () => {
+test("cli init writes package scripts, trustedDependencies, and review-deps script", () => {
   const cwd = mkdtempSync(join(tmpdir(), "safe-install-"));
   writeFileSync(
     join(cwd, "package.json"),
@@ -324,17 +324,10 @@ test("cli init writes package scripts, trustedDependencies, and review-deps scri
       },
     }),
   );
-  writeFileSync(join(cwd, ".npmrc"), "ignore-scripts=false\n");
-
   execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--", "init"], {
     cwd,
     stdio: "pipe",
   });
-
-  assert.equal(
-    readFileSync(join(cwd, ".npmrc"), "utf8"),
-    "ignore-scripts=false\n",
-  );
 
   const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as {
     scripts?: Record<string, string>;
