@@ -1,6 +1,6 @@
 # safe-install
 
-Run npm installs with dependency lifecycle scripts disabled by default, then
+Run npm install with dependency lifecycle scripts disabled by default, then
 rebuild only the packages you explicitly trust.
 
 `safe-install` is for npm projects that want trusted dependency installs without
@@ -25,11 +25,10 @@ behind a reviewed allowlist in `package.json`.
 ignore-scripts=true
 ```
 
-Optionally enable (requires npm 11.14.0+):
+Optionally enable (requires npm v11.10.0+):
 
 ```txt
 allow-git=root
-allow-remote=root
 ```
 
 2. Add script to `package.json`:
@@ -37,7 +36,7 @@ allow-remote=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install0.1.16"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.16"
   }
 }
 ```

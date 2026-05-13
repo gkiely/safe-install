@@ -21,7 +21,7 @@ if (!versionedCommandPattern.test(readme)) {
 
 const updated = readme.replace(
   versionedCommandPattern,
-  `npx -y @gkiely/safe-install${nextPatch(packageJson.version)}`,
+  `npx -y @gkiely/safe-install@${nextPatch(packageJson.version)}`,
 );
 
 writeFileSync(readmePath, updated);
