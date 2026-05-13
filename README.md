@@ -36,7 +36,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.24"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.25"
   }
 }
 ```
@@ -110,7 +110,7 @@ remote tarball URL specifier.
 Equivalent manual flow:
 
 ```sh
-npm install --ignore-scripts --no-audit --no-fund
+npm install --ignore-scripts
 npm rebuild --ignore-scripts=false esbuild sharp
 npm run --ignore-scripts --if-present preinstall
 npm run --ignore-scripts --if-present install
@@ -129,7 +129,7 @@ If you do not want your install script to call `npx -y @gkiely/safe-install`,
 run the initializer once:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.24 init
+npx -y @gkiely/safe-install@0.1.25 init
 ```
 
 It creates `safe-install`, `review-deps`, and
