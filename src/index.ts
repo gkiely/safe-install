@@ -194,30 +194,53 @@ function getRootInstallScripts(pkg: PackageJson): string[] {
   return installScriptNames.filter((scriptName) => typeof pkg.scripts?.[scriptName] === "string");
 }
 
+type NpmRunInstallConfig =
+  | "npm_config_save"
+  | "npm_config_save_bundle"
+  | "npm_config_save_dev"
+  | "npm_config_save_exact"
+  | "npm_config_save_optional"
+  | "npm_config_save_peer";
+type NpmRunEnv = Partial<Record<NpmRunInstallConfig, string>>;
+type RunScriptEnv = NpmRunEnv & Partial<Record<"NODE_RUN_SCRIPT_NAME" | "npm_command", string>>;
+
+const npmRunInstallFlags: { config: keyof NpmRunEnv; flag: string; aliases: string[]; value: string }[] = [
+  { config: "npm_config_save_dev", flag: "--save-dev", aliases: ["--save-dev", "-D"], value: "true" },
+  { config: "npm_config_save_optional", flag: "--save-optional", aliases: ["--save-optional", "-O"], value: "true" },
+  { config: "npm_config_save_peer", flag: "--save-peer", aliases: ["--save-peer"], value: "true" },
+  { config: "npm_config_save_exact", flag: "--save-exact", aliases: ["--save-exact", "-E"], value: "true" },
+  { config: "npm_config_save_bundle", flag: "--save-bundle", aliases: ["--save-bundle", "-B"], value: "true" },
+  { config: "npm_config_save", flag: "--no-save", aliases: ["--no-save"], value: "" },
+];
+
+function getNpmRunInstallFlags(args: readonly string[], env: RunScriptEnv): string[] {
+  return npmRunInstallFlags
+    .filter(({ aliases, config, value }) =>
+      env[config] === value && aliases.every((alias) => !args.includes(alias))
+    )
+    .map(({ flag }) => flag);
+}
+
 export function getInstallArgs(args: readonly string[] = []): string[] {
-  return ["install", "--ignore-scripts", ...args];
+  return ["install", "--ignore-scripts", ...getNpmRunInstallFlags(args, process.env), ...args];
 }
 
 export function getUpdateArgs(args: readonly string[] = []): string[] {
   return ["update", "--ignore-scripts", ...args];
 }
 
-export function parseCommand(args: readonly string[]): ParsedCommand {
+export function parseCommand(args: readonly string[], env: RunScriptEnv = process.env): ParsedCommand {
   if (args.includes("--help") || args.includes("-h")) {
     return { kind: "help" };
   }
 
-  if (
-    (args[0] === "--" && args[1] === "review-deps") ||
-    args[0] === "review-deps"
-  ) {
+  const isRunScript = env.npm_command === "run" || env.NODE_RUN_SCRIPT_NAME === "safe-install";
+
+  if ((args[0] === "--" && args[1] === "review-deps") || (isRunScript && args[0] === "review-deps")) {
     return { kind: "review-deps" };
   }
 
-  if (
-    (args[0] === "--" && args[1] === "update") ||
-    args[0] === "update"
-  ) {
+  if ((args[0] === "--" && args[1] === "update") || args[0] === "update") {
     return {
       kind: "update",
       args: args[0] === "--" ? args.slice(2) : args.slice(1),
