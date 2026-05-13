@@ -241,7 +241,7 @@ test("cli init writes package scripts, trustedDependencies, and review-deps scri
   assert.equal(pkg.scripts?.["review-deps"], "node scripts/review-deps.mjs");
   assert.equal(
     pkg.scripts?.["rebuild-trusted-dependencies"],
-    "node -e \"const {spawnSync}=require('node:child_process'); const deps=require('./package.json').trustedDependencies ?? []; if (deps.length === 0) process.exit(0); const result=spawnSync('npm', ['rebuild', '--ignore-scripts=false', ...deps], {stdio:'inherit', shell: process.platform === 'win32'}); process.exit(result.status ?? 1);\"",
+    "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")",
   );
   assert.deepEqual(pkg.trustedDependencies, []);
   assert.equal(existsSync(join(cwd, "scripts/review-deps.mjs")), true);

@@ -259,7 +259,7 @@ function initPackageJson(): void {
 
   scripts["safe-install"] = "([ -n \"$CI\" ] && npm ci --ignore-scripts || npm install --ignore-scripts) && npm run --ignore-scripts rebuild-trusted-dependencies && npm run --ignore-scripts --if-present preinstall && npm run --ignore-scripts --if-present install && npm run --ignore-scripts --if-present postinstall";
   scripts["review-deps"] = "node scripts/review-deps.mjs";
-  scripts["rebuild-trusted-dependencies"] = "node -e \"const {spawnSync}=require('node:child_process'); const deps=require('./package.json').trustedDependencies ?? []; if (deps.length === 0) process.exit(0); const result=spawnSync('npm', ['rebuild', '--ignore-scripts=false', ...deps], {stdio:'inherit', shell: process.platform === 'win32'}); process.exit(result.status ?? 1);\"";
+  scripts["rebuild-trusted-dependencies"] = "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")";
 
   pkg.scripts = scripts;
   if (pkg.trustedDependencies === undefined) {
