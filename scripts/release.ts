@@ -1,11 +1,16 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
-import { readFileSync, writeFileSync } from "node:fs";
 
 type ShellArg = string | number | boolean | Array<string | number | boolean>;
 
 function $(strings: TemplateStringsArray, ...values: ShellArg[]): string {
+  const [command, args] = commandArgs(strings, values);
+  return execFileSync(command, args, { encoding: "utf8", stdio: "inherit" }).trim();
+}
+
+$.value = function value(strings: TemplateStringsArray, ...values: ShellArg[]): string {
   const [command, args] = commandArgs(strings, values);
   return execFileSync(command, args, { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] }).trim();
 }
@@ -13,11 +18,6 @@ function $(strings: TemplateStringsArray, ...values: ShellArg[]): string {
 $.status = function status(strings: TemplateStringsArray, ...values: ShellArg[]): number {
   const [command, args] = commandArgs(strings, values);
   return spawnSync(command, args, { stdio: "inherit" }).status ?? 1;
-};
-
-$.statusExit = function statusExit(strings: TemplateStringsArray, ...values: ShellArg[]): void {
-  const status = $.status(strings, ...values);
-  if (status !== 0) process.exit(status);
 };
 
 async function publish(): Promise<void> {
@@ -50,14 +50,14 @@ function commandArgs(strings: TemplateStringsArray, values: ShellArg[]): [string
 }
 
 function assertCleanWorktree(): void {
-  const status = $`git status --porcelain`;
+  const status = $.value`git status --porcelain`;
   if (status) {
     throw new Error("Release requires a clean worktree before uncommitting HEAD.");
   }
 }
 
 function changedFilesInHead(): string[] {
-  const files = $`git diff-tree --no-commit-id --name-only -r HEAD`;
+  const files = $.value`git diff-tree --no-commit-id --name-only -r HEAD`;
   return files ? files.split("\n").filter(Boolean) : [];
 }
 
@@ -78,9 +78,10 @@ function syncReadmeVersion(version: string): void {
 
 assertCleanWorktree();
 
-const head = $`git rev-parse --short HEAD`;
-const headSubject = $`git log -1 --pretty=%s`;
-const parent = $`git rev-parse --verify HEAD^`;
+const head = $.value`git rev-parse --short HEAD`;
+const headSubject = $.value`git log -1 --pretty=%s`;
+const parent = $.value`git rev-parse --verify HEAD^`;
+
 // Fail before publishing if this branch has nowhere to push the release commit/tag.
 $`git rev-parse --abbrev-ref --symbolic-full-name @{u}`;
 $`npm whoami`;
@@ -96,8 +97,8 @@ const filesToRestage = [
   "README.md",
 ];
 
-$.statusExit`npm run typecheck`;
-$.statusExit`npm test`;
+$`npm run typecheck`;
+$`npm test`;
 
 console.log(`Uncommitting ${head} and restaging release changes...`);
 $`git reset --mixed ${parent}`;
