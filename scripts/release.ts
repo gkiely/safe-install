@@ -15,6 +15,11 @@ $.value = function value(strings: TemplateStringsArray, ...values: ShellArg[]): 
   return execFileSync(command, args, { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] }).trim();
 }
 
+$.quiet = function quiet(strings: TemplateStringsArray, ...values: ShellArg[]): void {
+  const [command, args] = commandArgs(strings, values);
+  execFileSync(command, args, { encoding: "utf8", stdio: ["inherit", "ignore", "inherit"] });
+};
+
 $.status = function status(strings: TemplateStringsArray, ...values: ShellArg[]): number {
   const [command, args] = commandArgs(strings, values);
   return spawnSync(command, args, { stdio: "inherit" }).status ?? 1;
@@ -83,8 +88,8 @@ const headSubject = $.value`git log -1 --pretty=%s`;
 const parent = $.value`git rev-parse --verify HEAD^`;
 
 // Fail before publishing if this branch has nowhere to push the release commit/tag.
-$`git rev-parse --abbrev-ref --symbolic-full-name @{u}`;
-$`npm whoami`;
+$.quiet`git rev-parse --abbrev-ref --symbolic-full-name @{u}`;
+$.quiet`npm whoami`;
 
 if (/^v\d+\.\d+\.\d+$/.test(headSubject)) {
   throw new Error("HEAD is already a release commit.");

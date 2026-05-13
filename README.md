@@ -36,7 +36,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.27"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.28"
   }
 }
 ```
@@ -129,7 +129,7 @@ If you do not want your install script to call `npx -y @gkiely/safe-install`,
 run the initializer once:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.27 init
+npx -y @gkiely/safe-install@0.1.28 init
 ```
 
 It creates `safe-install`, `review-deps`, and
