@@ -5,9 +5,9 @@ import { createInterface } from "node:readline/promises";
 
 type ShellArg = string | number | boolean | Array<string | number | boolean>;
 
-function $(strings: TemplateStringsArray, ...values: ShellArg[]): string {
+function $(strings: TemplateStringsArray, ...values: ShellArg[]): void {
   const [command, args] = commandArgs(strings, values);
-  return execFileSync(command, args, { encoding: "utf8", stdio: "inherit" }).trim();
+  execFileSync(command, args, { encoding: "utf8", stdio: "inherit" });
 }
 
 $.value = function value(strings: TemplateStringsArray, ...values: ShellArg[]): string {
