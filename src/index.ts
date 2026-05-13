@@ -273,7 +273,14 @@ function initReviewDepsScript(): void {
   mkdirSync("scripts", { recursive: true });
   writeFileSync("scripts/review-deps.mjs", `import { readFileSync } from 'node:fs';
 
+/**
+ * @typedef {{ hasInstallScript?: boolean }} LockPackage
+ * @typedef {{ packages?: Record<string, LockPackage> }} PackageLock
+ */
+
+/** @type {PackageLock} */
 const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+/** @type {Set<string>} */
 const names = new Set();
 
 for (const [path, pkg] of Object.entries(lock.packages ?? {})) {

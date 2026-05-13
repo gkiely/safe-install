@@ -36,7 +36,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.21"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.22"
   }
 }
 ```
@@ -95,7 +95,7 @@ npm run safe-install -- update
 Or generate local project scripts:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.21 init
+npx -y @gkiely/safe-install@0.1.22 init
 ```
 
 ## What `safe-install` does
@@ -133,7 +133,7 @@ If you do not want your install script to call `npx -y @gkiely/safe-install`,
 run the initializer once:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.21 init
+npx -y @gkiely/safe-install@0.1.22 init
 ```
 
 It creates `safe-install`, `review-deps`, and
