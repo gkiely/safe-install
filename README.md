@@ -28,6 +28,7 @@ ignore-scripts=true
 Optionally enable (requires npm v11.10.0+):
 
 ```txt
+min-release-age=3
 allow-git=root
 ```
 
@@ -36,7 +37,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.28"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.29"
   }
 }
 ```
@@ -129,7 +130,7 @@ If you do not want your install script to call `npx -y @gkiely/safe-install`,
 run the initializer once:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.28 init
+npx -y @gkiely/safe-install@0.1.29 init
 ```
 
 It creates `safe-install`, `review-deps`, and
