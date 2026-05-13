@@ -103,6 +103,6 @@ $`git add -- ${filesToRestage}`;
 
 const version = packageVersion();
 $`git commit -m ${`v${version}`}`;
-$`git tag ${`v${version}`}`;
+$`git tag -a ${`v${version}`} -m ${`v${version}`}`;
 await publish();
 $`git push --follow-tags`;
