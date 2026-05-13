@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -113,6 +113,11 @@ test("parseCommand supports update with or without a leading separator", () => {
   });
 });
 
+test("parseCommand supports init with or without a leading separator", () => {
+  assert.deepEqual(parseCommand(["--", "init"]), { kind: "init" });
+  assert.deepEqual(parseCommand(["init"]), { kind: "init" });
+});
+
 test("parseCommand supports install-latest package args", () => {
   assert.deepEqual(parseCommand(["--no-audit", "--no-fund", "react@latest", "vite@latest"]), {
     kind: "install",
@@ -198,4 +203,47 @@ test("node --run script can forward review-deps through npx-style script", () =>
   });
 
   assert.match(output, /No untrusted dependencies with install-time scripts found/);
+});
+
+test("cli init writes package scripts, trustedDependencies, and review-deps script without changing npmrc", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "safe-install-"));
+  writeFileSync(
+    join(cwd, "package.json"),
+    JSON.stringify({
+      name: "fixture",
+      version: "1.0.0",
+      scripts: {
+        test: "node --test",
+      },
+    }),
+  );
+  writeFileSync(join(cwd, ".npmrc"), "ignore-scripts=false\n");
+
+  execFileSync("node", [join(import.meta.dirname, "../dist/index.js"), "--", "init"], {
+    cwd,
+    stdio: "pipe",
+  });
+
+  assert.equal(
+    readFileSync(join(cwd, ".npmrc"), "utf8"),
+    "ignore-scripts=false\n",
+  );
+
+  const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as {
+    scripts?: Record<string, string>;
+    trustedDependencies?: string[];
+  };
+  assert.equal(pkg.scripts?.test, "node --test");
+  assert.equal(
+    pkg.scripts?.["safe-install"],
+    "([ -n \"$CI\" ] && npm ci || npm install) && node --run postinstall && node --run rebuild-trusted-dependencies",
+  );
+  assert.equal(pkg.scripts?.["review-deps"], "node scripts/review-deps.ts");
+  assert.equal(
+    pkg.scripts?.["rebuild-trusted-dependencies"],
+    "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")",
+  );
+  assert.deepEqual(pkg.trustedDependencies, []);
+  assert.equal(existsSync(join(cwd, "scripts/review-deps.ts")), true);
+  assert.match(readFileSync(join(cwd, "scripts/review-deps.ts"), "utf8"), /hasInstallScript/);
 });

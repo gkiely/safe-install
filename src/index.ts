@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 type PackageJson = {
@@ -26,6 +26,7 @@ type ParsedCommand =
   | { kind: "install"; args: string[] }
   | { kind: "update"; args: string[] }
   | { kind: "review-deps" }
+  | { kind: "init" }
   | { kind: "help" };
 
 const installScriptNames = ["preinstall", "install", "postinstall"];
@@ -170,6 +171,10 @@ function readPackageJson(): PackageJson {
   return existsSync("package.json") ? readJsonFile<PackageJson>("package.json") : {};
 }
 
+function writeJsonFile(path: string, value: unknown): void {
+  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+}
+
 function run(command: string, args: string[]): void {
   const result = spawnSync(command, args, {
     stdio: "inherit",
@@ -219,6 +224,13 @@ export function parseCommand(args: readonly string[]): ParsedCommand {
     };
   }
 
+  if (
+    (args[0] === "--" && args[1] === "init") ||
+    args[0] === "init"
+  ) {
+    return { kind: "init" };
+  }
+
   return { kind: "install", args: args.filter((arg) => arg !== "--") };
 }
 
@@ -232,7 +244,61 @@ Usage:
                         List dependencies that declare install-time scripts
   safe-install -- update [npm update args]
                         Run npm update with dependency scripts disabled, then rebuild trusted dependencies
+  safe-install -- init
+                        Add package scripts and scripts/review-deps.ts to the current project
 `);
+}
+
+function initPackageJson(): void {
+  if (!existsSync("package.json")) {
+    throw new Error("package.json not found.");
+  }
+
+  const pkg = readJsonFile<PackageJson>("package.json");
+  const scripts = typeof pkg.scripts === "object" && pkg.scripts !== null ? { ...pkg.scripts } : {};
+
+  scripts["safe-install"] = "([ -n \"$CI\" ] && npm ci || npm install) && node --run postinstall && node --run rebuild-trusted-dependencies";
+  scripts["review-deps"] = "node scripts/review-deps.ts";
+  scripts["rebuild-trusted-dependencies"] = "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")";
+
+  pkg.scripts = scripts;
+  if (pkg.trustedDependencies === undefined) {
+    pkg.trustedDependencies = [];
+  }
+
+  writeJsonFile("package.json", pkg);
+}
+
+function initReviewDepsScript(): void {
+  mkdirSync("scripts", { recursive: true });
+  writeFileSync("scripts/review-deps.ts", `import { readFileSync } from 'node:fs';
+
+type LockPackage = {
+  hasInstallScript?: boolean;
+};
+
+type PackageLock = {
+  packages?: Record<string, LockPackage>;
+};
+
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as PackageLock;
+const names = new Set<string>();
+
+for (const [path, pkg] of Object.entries(lock.packages ?? {})) {
+  if (!pkg.hasInstallScript) continue;
+
+  const [, name] = path.match(/^node_modules\\/(@[^/]+\\/[^/]+|[^/]+)/) ?? [];
+  if (name) names.add(name);
+}
+
+console.log([...names].sort().join('\\n'));
+`);
+}
+
+export function initCommand(): void {
+  initPackageJson();
+  initReviewDepsScript();
+  console.log("Initialized safe-install scripts.");
 }
 
 export function reviewDepsCommand(): void {
@@ -292,6 +358,11 @@ export function main(args = process.argv.slice(2)): void {
 
   if (command.kind === "review-deps") {
     reviewDepsCommand();
+    return;
+  }
+
+  if (command.kind === "init") {
+    initCommand();
     return;
   }
 

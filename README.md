@@ -92,6 +92,12 @@ You can run npm update through the same command:
 npm run safe-install -- update
 ```
 
+Or generate local project scripts:
+
+```sh
+npx -y @gkiely/safe-install@0.1.19 init
+```
+
 ## What `safe-install` does
 
 `safe-install` runs npm install with scripts blocked, then runs install scripts only for packages listed in
@@ -120,3 +126,15 @@ npm run --ignore-scripts postinstall
 Only add a package to `trustedDependencies` after reviewing why it needs an
 install script. This does not make dependency scripts safe; it makes the trust
 decision explicit and version-controlled.
+
+## Generate local scripts
+
+If you do not want your install script to call `npx -y @gkiely/safe-install`,
+run the initializer once:
+
+```sh
+npx -y @gkiely/safe-install@0.1.19 init
+```
+
+It writes local `safe-install`, `review-deps`, and
+`rebuild-trusted-dependencies` package scripts, plus `scripts/review-deps.ts`.
