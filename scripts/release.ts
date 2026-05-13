@@ -10,9 +10,14 @@ function $(strings: TemplateStringsArray, ...values: ShellArg[]): string {
   return execFileSync(command, args, { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] }).trim();
 }
 
-$.status = function status(strings: TemplateStringsArray, ...values: ShellArg[]): number | null {
+$.status = function status(strings: TemplateStringsArray, ...values: ShellArg[]): number {
   const [command, args] = commandArgs(strings, values);
-  return spawnSync(command, args, { stdio: "inherit" }).status;
+  return spawnSync(command, args, { stdio: "inherit" }).status ?? 1;
+};
+
+$.statusExit = function statusExit(strings: TemplateStringsArray, ...values: ShellArg[]): void {
+  const status = $.status(strings, ...values);
+  if (status !== 0) process.exit(status);
 };
 
 async function publish(): Promise<void> {
@@ -91,8 +96,8 @@ const filesToRestage = [
   "README.md",
 ];
 
-$`npm run typecheck`;
-$`npm test`;
+$.statusExit`npm run typecheck`;
+$.statusExit`npm test`;
 
 console.log(`Uncommitting ${head} and restaging release changes...`);
 $`git reset --mixed ${parent}`;
