@@ -13,7 +13,7 @@
     "trusted-dependencies"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=14"
   },
   "repository": {
     "type": "git",

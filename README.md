@@ -116,9 +116,9 @@ Equivalent manual flow:
 ```sh
 npm install --ignore-scripts --no-audit --no-fund
 npm rebuild --ignore-scripts=false esbuild sharp
-npm run --ignore-scripts preinstall
-npm run --ignore-scripts install
-npm run --ignore-scripts postinstall
+npm run --ignore-scripts --if-present preinstall
+npm run --ignore-scripts --if-present install
+npm run --ignore-scripts --if-present postinstall
 ```
 
 ## Notes
@@ -136,5 +136,5 @@ run the initializer once:
 npx -y @gkiely/safe-install@0.1.19 init
 ```
 
-It writes local `safe-install`, `review-deps`, and
-`rebuild-trusted-dependencies` package scripts, plus `scripts/review-deps.ts`.
+It creates `safe-install`, `review-deps`, and
+`rebuild-trusted-dependencies` package.json scripts, plus `scripts/review-deps.mjs`.

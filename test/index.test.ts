@@ -236,14 +236,14 @@ test("cli init writes package scripts, trustedDependencies, and review-deps scri
   assert.equal(pkg.scripts?.test, "node --test");
   assert.equal(
     pkg.scripts?.["safe-install"],
-    "([ -n \"$CI\" ] && npm ci || npm install) && node --run postinstall && node --run rebuild-trusted-dependencies",
+    "([ -n \"$CI\" ] && npm ci --ignore-scripts || npm install --ignore-scripts) && npm run --ignore-scripts rebuild-trusted-dependencies && npm run --ignore-scripts --if-present preinstall && npm run --ignore-scripts --if-present install && npm run --ignore-scripts --if-present postinstall",
   );
-  assert.equal(pkg.scripts?.["review-deps"], "node scripts/review-deps.ts");
+  assert.equal(pkg.scripts?.["review-deps"], "node scripts/review-deps.mjs");
   assert.equal(
     pkg.scripts?.["rebuild-trusted-dependencies"],
-    "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")",
+    "node -e \"const {spawnSync}=require('node:child_process'); const deps=require('./package.json').trustedDependencies ?? []; if (deps.length === 0) process.exit(0); const result=spawnSync('npm', ['rebuild', '--ignore-scripts=false', ...deps], {stdio:'inherit', shell: process.platform === 'win32'}); process.exit(result.status ?? 1);\"",
   );
   assert.deepEqual(pkg.trustedDependencies, []);
-  assert.equal(existsSync(join(cwd, "scripts/review-deps.ts")), true);
-  assert.match(readFileSync(join(cwd, "scripts/review-deps.ts"), "utf8"), /hasInstallScript/);
+  assert.equal(existsSync(join(cwd, "scripts/review-deps.mjs")), true);
+  assert.match(readFileSync(join(cwd, "scripts/review-deps.mjs"), "utf8"), /hasInstallScript/);
 });

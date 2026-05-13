@@ -245,7 +245,7 @@ Usage:
   safe-install -- update [npm update args]
                         Run npm update with dependency scripts disabled, then rebuild trusted dependencies
   safe-install -- init
-                        Add package scripts and scripts/review-deps.ts to the current project
+                        Add package scripts and scripts/review-deps.mjs to the current project
 `);
 }
 
@@ -257,9 +257,9 @@ function initPackageJson(): void {
   const pkg = readJsonFile<PackageJson>("package.json");
   const scripts = typeof pkg.scripts === "object" && pkg.scripts !== null ? { ...pkg.scripts } : {};
 
-  scripts["safe-install"] = "([ -n \"$CI\" ] && npm ci || npm install) && node --run postinstall && node --run rebuild-trusted-dependencies";
-  scripts["review-deps"] = "node scripts/review-deps.ts";
-  scripts["rebuild-trusted-dependencies"] = "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")";
+  scripts["safe-install"] = "([ -n \"$CI\" ] && npm ci --ignore-scripts || npm install --ignore-scripts) && npm run --ignore-scripts rebuild-trusted-dependencies && npm run --ignore-scripts --if-present preinstall && npm run --ignore-scripts --if-present install && npm run --ignore-scripts --if-present postinstall";
+  scripts["review-deps"] = "node scripts/review-deps.mjs";
+  scripts["rebuild-trusted-dependencies"] = "node -e \"const {spawnSync}=require('node:child_process'); const deps=require('./package.json').trustedDependencies ?? []; if (deps.length === 0) process.exit(0); const result=spawnSync('npm', ['rebuild', '--ignore-scripts=false', ...deps], {stdio:'inherit', shell: process.platform === 'win32'}); process.exit(result.status ?? 1);\"";
 
   pkg.scripts = scripts;
   if (pkg.trustedDependencies === undefined) {
@@ -271,18 +271,10 @@ function initPackageJson(): void {
 
 function initReviewDepsScript(): void {
   mkdirSync("scripts", { recursive: true });
-  writeFileSync("scripts/review-deps.ts", `import { readFileSync } from 'node:fs';
+  writeFileSync("scripts/review-deps.mjs", `import { readFileSync } from 'node:fs';
 
-type LockPackage = {
-  hasInstallScript?: boolean;
-};
-
-type PackageLock = {
-  packages?: Record<string, LockPackage>;
-};
-
-const lock = JSON.parse(readFileSync('package-lock.json', 'utf8')) as PackageLock;
-const names = new Set<string>();
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+const names = new Set();
 
 for (const [path, pkg] of Object.entries(lock.packages ?? {})) {
   if (!pkg.hasInstallScript) continue;
