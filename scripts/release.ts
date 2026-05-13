@@ -1,4 +1,6 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
+import { stdin as input, stdout as output } from "node:process";
+import { createInterface } from "node:readline/promises";
 import { readFileSync, writeFileSync } from "node:fs";
 
 type ShellArg = string | number | boolean | Array<string | number | boolean>;
@@ -6,6 +8,21 @@ type ShellArg = string | number | boolean | Array<string | number | boolean>;
 function $(strings: TemplateStringsArray, ...values: ShellArg[]): string {
   const [command, args] = commandArgs(strings, values);
   return execFileSync(command, args, { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] }).trim();
+}
+
+$.status = function status(strings: TemplateStringsArray, ...values: ShellArg[]): number | null {
+  const [command, args] = commandArgs(strings, values);
+  return spawnSync(command, args, { stdio: "inherit" }).status;
+};
+
+async function publish(): Promise<void> {
+  while (true) {
+    if ($.status`npm publish --access public` === 0) return;
+
+    const readline = createInterface({ input, output });
+    await readline.question("");
+    readline.close();
+  }
 }
 
 function commandArgs(strings: TemplateStringsArray, values: ShellArg[]): [string, string[]] {
@@ -87,5 +104,5 @@ $`git add -- ${filesToRestage}`;
 const version = packageVersion();
 $`git commit -m ${`v${version}`}`;
 $`git tag ${`v${version}`}`;
-$`npm publish --access public`;
+await publish();
 $`git push --follow-tags`;

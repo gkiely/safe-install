@@ -36,7 +36,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.18"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.19"
   }
 }
 ```
