@@ -37,7 +37,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.30"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.31"
   }
 }
 ```
@@ -124,14 +124,12 @@ Only add a package to `trustedDependencies` after reviewing why it needs an
 install script. This does not make dependency scripts safe; it makes the trust
 decision explicit and version-controlled.
 
-## Generate local scripts
+## Init command setup
 
-If you do not want your install script to call `npx -y @gkiely/safe-install`,
-run the initializer once:
+Alternatively, you can generate the scripts directly in your own repo:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.30 init
+npx -y @gkiely/safe-install@0.1.31 init
 ```
 
-It creates `safe-install`, `review-deps`, and
-`rebuild-trusted-dependencies` package.json scripts, plus `scripts/review-deps.mjs`.
+This adds the same scripts to your package.json (`safe-install`, `review-deps`, `rebuild-trusted-dependencies`) as well as `scripts/review-deps.mjs`, so future installs use your local scripts instead of calling `npx -y @gkiely/safe-install`.

@@ -70,6 +70,16 @@ function packageVersion(): string {
   return (JSON.parse(readFileSync("package.json", "utf8")) as { version: string }).version;
 }
 
+function assertHeadReleaseCommitCanResume(headSubject: string): void {
+  const version = packageVersion();
+
+  if (headSubject !== `v${version}`) {
+    throw new Error(`HEAD release commit ${headSubject} does not match package version ${version}.`);
+  }
+
+  $.quiet`git rev-parse --verify ${`v${version}`}`;
+}
+
 function syncReadmeVersion(version: string): void {
   const readmePath = "README.md";
   const readme = readFileSync(readmePath, "utf8");
@@ -92,7 +102,12 @@ $.quiet`git rev-parse --abbrev-ref --symbolic-full-name @{u}`;
 $.quiet`npm whoami`;
 
 if (/^v\d+\.\d+\.\d+$/.test(headSubject)) {
-  throw new Error("HEAD is already a release commit.");
+  assertHeadReleaseCommitCanResume(headSubject);
+  $`npm run typecheck`;
+  $`npm test`;
+  await publish();
+  $`git push --follow-tags`;
+  process.exit(0);
 }
 
 const filesToRestage = [
