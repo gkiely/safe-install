@@ -31,11 +31,17 @@ type ParsedCommand =
 
 const installScriptNames = ["preinstall", "install", "postinstall"];
 const exoticSpecifiers = [
+  "bitbucket:",
   "file:",
+  "gist:",
   "git:",
+  "git+",
+  "github:",
+  "gitlab:",
   "http:",
   "https:",
   "link:",
+  "ssh:",
 ];
 
 export function getTrustedDependencies(pkg: PackageJson): string[] {

@@ -68,6 +68,11 @@ test("assertNoBlockedExoticSubdeps only fails when block-exotic-subdeps is enabl
       },
       "node_modules/parent": {
         dependencies: {
+          bitbucket: "bitbucket:example/bitbucket-dep",
+          gist: "gist:example",
+          gitlab: "gitlab:example/gitlab-dep",
+          github: "github:example/github-dep",
+          ssh: "ssh://git@github.com/example/ssh-dep.git",
           tarball: "https://example.com/tarball.tgz",
         },
       },
