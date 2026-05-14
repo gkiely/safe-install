@@ -61,6 +61,21 @@ function assertCleanWorktree(): void {
   }
 }
 
+function assertPushable(): void {
+  $.quiet`git fetch origin --tags --prune`;
+
+  const upstream = $.value`git rev-parse --abbrev-ref --symbolic-full-name @{u}`;
+  const [ahead, behind] = $.value`git rev-list --left-right --count ${`HEAD...${upstream}`}`
+    .split(/\s+/)
+    .map(Number);
+
+  if (behind > 0) {
+    throw new Error(`Release branch is behind ${upstream}. Pull/rebase before publishing.`);
+  }
+
+  $.quiet`git push --dry-run --follow-tags`;
+}
+
 function changedFilesInHead(): string[] {
   const files = $.value`git diff-tree --no-commit-id --name-only -r HEAD`;
   return files ? files.split("\n").filter(Boolean) : [];
@@ -98,13 +113,14 @@ const headSubject = $.value`git log -1 --pretty=%s`;
 const parent = $.value`git rev-parse --verify HEAD^`;
 
 // Fail before publishing if this branch has nowhere to push the release commit/tag.
-$.quiet`git rev-parse --abbrev-ref --symbolic-full-name @{u}`;
+assertPushable();
 $.quiet`npm whoami`;
 
 if (/^v\d+\.\d+\.\d+$/.test(headSubject)) {
   assertHeadReleaseCommitCanResume(headSubject);
   $`npm run typecheck`;
   $`npm test`;
+  assertPushable();
   await publish();
   $`git push --follow-tags`;
   process.exit(0);
@@ -130,5 +146,6 @@ $`git add -- ${filesToRestage}`;
 const version = packageVersion();
 $`git commit -m ${`v${version}`}`;
 $`git tag -a ${`v${version}`} -m ${`v${version}`}`;
+assertPushable();
 await publish();
 $`git push --follow-tags`;
