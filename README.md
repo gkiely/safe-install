@@ -37,7 +37,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.32"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.33"
   }
 }
 ```
@@ -129,7 +129,7 @@ decision explicit and version-controlled.
 Alternatively, you can generate the scripts directly in your own repo:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.32 init
+npx -y @gkiely/safe-install@0.1.33 init
 ```
 
 This adds the same scripts to your package.json (`safe-install`, `review-deps`, `rebuild-trusted-dependencies`) as well as `scripts/review-deps.mjs`, so future installs use your local scripts instead of calling `npx -y @gkiely/safe-install`.
@@ -142,9 +142,9 @@ This adds the same scripts to your package.json (`safe-install`, `review-deps`, 
 ```json
 {
   "scripts": {
-    "safe-install": "npm install --ignore-scripts && npm run rebuild-trusted-dependencies && npm run --if-present preinstall && npm run --if-present install && npm run --if-present postinstall",
+    "safe-install": "npm install && npm run rebuild-trusted-dependencies && npm run --if-present preinstall && npm run --if-present install && npm run --if-present postinstall",
     "review-deps": "node scripts/review-deps.mjs",
-    "rebuild-trusted-dependencies": "node scripts/rebuild-trusted-deps.mjs"
+    "rebuild-trusted-dependencies": "npm rebuild --ignore-scripts=false $(node -p \"require('./package.json').trustedDependencies.join(' ')\")"
   }
 }
 ```
