@@ -37,7 +37,7 @@ allow-git=root
 ```json
 {
   "scripts": {
-    "safe-install": "npx -y @gkiely/safe-install@0.1.31"
+    "safe-install": "npx -y @gkiely/safe-install@0.1.32"
   }
 }
 ```
@@ -124,12 +124,62 @@ Only add a package to `trustedDependencies` after reviewing why it needs an
 install script. This does not make dependency scripts safe; it makes the trust
 decision explicit and version-controlled.
 
-## Init command setup
+## Single init command
 
 Alternatively, you can generate the scripts directly in your own repo:
 
 ```sh
-npx -y @gkiely/safe-install@0.1.31 init
+npx -y @gkiely/safe-install@0.1.32 init
 ```
 
 This adds the same scripts to your package.json (`safe-install`, `review-deps`, `rebuild-trusted-dependencies`) as well as `scripts/review-deps.mjs`, so future installs use your local scripts instead of calling `npx -y @gkiely/safe-install`.
+
+
+## DIY version
+1. Add `ignore-scripts=true` and `min-release-age=3` to `.npmrc`.
+2. Create 3 scripts in `package.json`:
+
+```json
+{
+  "scripts": {
+    "safe-install": "npm install --ignore-scripts && npm run rebuild-trusted-dependencies && npm run --if-present preinstall && npm run --if-present install && npm run --if-present postinstall",
+    "review-deps": "node scripts/review-deps.mjs",
+    "rebuild-trusted-dependencies": "node scripts/rebuild-trusted-deps.mjs"
+  }
+}
+```
+3. Create `scripts/review-deps.mjs`:
+
+```js
+import { readFileSync } from 'node:fs';
+
+/**
+ * @typedef {{ hasInstallScript?: boolean }} LockPackage
+ * @typedef {{ packages?: Record<string, LockPackage> }} PackageLock
+ */
+
+/** @type {PackageLock} */
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+/** @type {Set<string>} */
+const names = new Set();
+
+for (const [path, pkg] of Object.entries(lock.packages ?? {})) {
+  if (!pkg.hasInstallScript) continue;
+
+  const [, name] = path.match(/^node_modules\/(@[^/]+\/[^/]+|[^/]+)/) ?? [];
+  if (name) names.add(name);
+}
+
+console.log([...names].sort().join('\n'));
+```
+
+4. Run: `npm run review-deps` and add trusted dependencies to `package.json`:
+
+```json
+{
+  "trustedDependencies": [
+    "esbuild",
+    "sharp"
+  ]
+}
+```
